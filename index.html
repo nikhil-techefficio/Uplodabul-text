@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable JSON Storage</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            margin-top: 15px;
+        }
+        th, td {
+            text-align: center;
+        }
+        th {
+            background-color: #343a40;
+            color: #ffffff;
+        }
+        .btn-primary, .btn-success, .btn-info, .btn-secondary {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center">Editable JSON Storage</h2>
+        <textarea class="form-control" id="inputText" placeholder="Enter your text here"></textarea>
+        <div class="text-center">
+            <button class="btn btn-primary" onclick="saveText()">Save</button>
+            <button class="btn btn-secondary" onclick="downloadText()">Download</button>
+            <input type="file" class="btn btn-info" id="fileInput" onchange="uploadText()" />
+        </div>
+        <h3 class="mt-4">Stored Text</h3>
+        <div id="storedText" class="p-3 border rounded"></div>
+        <h3 class="mt-4">Edit Table</h3>
+        <table class="table table-bordered" id="editTable">
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Text</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Editable rows will be added here dynamically -->
+            </tbody>
+        </table>
+    </div>
+    <script>
+        let storedTexts = [];
+
+        const saveText = () => {
+            const inputText = document.getElementById('inputText').value;
+            if (inputText) {
+                storedTexts.push(inputText);
+                document.getElementById('inputText').value = '';
+                alert('Text saved!');
+                loadText();
+            } else {
+                alert('Please enter some text');
+            }
+        };
+
+        const loadText = () => {
+            const storedTextDiv = document.getElementById('storedText');
+            storedTextDiv.innerHTML = storedTexts.map((text, index) => `<p>${index + 1}. ${text}</p>`).join('');
+
+            const tableBody = document.getElementById('editTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            storedTexts.forEach((text, index) => {
+                let row = tableBody.insertRow();
+                let cellIndex = row.insertCell(0);
+                let cellText = row.insertCell(1);
+                let cellEdit = row.insertCell(2);
+
+                cellIndex.innerHTML = index;
+                cellText.innerHTML = `<input type="text" class="form-control" value="${text}" id="text-${index}" />`;
+                cellEdit.innerHTML = `<button class="btn btn-success" onclick="editText(${index})">Save</button>`;
+            });
+        };
+
+        const editText = (index) => {
+            const newText = document.getElementById(`text-${index}`).value;
+            storedTexts[index] = newText;
+            alert('Text updated!');
+            loadText();
+        };
+
+        const downloadText = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storedTexts));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "data.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        };
+
+        const uploadText = () => {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                storedTexts = JSON.parse(event.target.result);
+                loadText();
+            };
+
+            reader.readAsText(file);
+        };
+
+        // Load text on page load
+        window.onload = loadText;
+    </script>
+</body>
+</html>
