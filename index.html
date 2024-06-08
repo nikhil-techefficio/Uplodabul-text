@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editable JSON Storage</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,7 +36,7 @@
             background-color: #343a40;
             color: #ffffff;
         }
-        .btn-primary, .btn-success, .btn-info, .btn-secondary {
+        .btn-primary, .btn-success, .btn-info, .btn-secondary, .btn-warning {
             margin: 5px;
         }
     </style>
@@ -46,7 +47,9 @@
         <textarea class="form-control" id="inputText" placeholder="Enter your text here"></textarea>
         <div class="text-center">
             <button class="btn btn-primary" onclick="saveText()">Save</button>
-            <button class="btn btn-secondary" onclick="downloadText()">Download</button>
+            <button class="btn btn-secondary" onclick="downloadText()">Download JSON</button>
+            <button class="btn btn-info" onclick="downloadPDF()">Download PDF</button>
+            <button class="btn btn-warning" onclick="downloadCSV()">Download CSV</button>
             <input type="file" class="btn btn-info" id="fileInput" onchange="uploadText()" />
         </div>
         <h3 class="mt-4">Stored Text</h3>
@@ -110,6 +113,28 @@
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", "data.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        };
+
+        const downloadPDF = async () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            storedTexts.forEach((text, index) => {
+                doc.text(`${index + 1}. ${text}`, 10, 10 + (index * 10));
+            });
+            doc.save('data.pdf');
+        };
+
+        const downloadCSV = () => {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            storedTexts.forEach((text, index) => {
+                csvContent += `${index + 1},${text}\n`;
+            });
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", encodeURI(csvContent));
+            downloadAnchorNode.setAttribute("download", "data.csv");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
